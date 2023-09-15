@@ -1,0 +1,15 @@
+bot_sessions
+node_modules
+baileys.log
+/core.class.log
+package-lock.json
+credentials.json
+.env
+google
+envioWsp
+bot.qr.png
+PyWhatKit_DB.txt
+queue.class.log
+.wwebjs_cache
+db.json
+dbPy.json
