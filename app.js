@@ -1,166 +1,177 @@
-const { createBot, createProvider, createFlow, addKeyword, EVENTS } = require('@bot-whatsapp/bot')
+const { createBot, createProvider, createFlow, addKeyword, EVENTS } = require('@bot-whatsapp/bot');
 const fs = require('fs');
 const QRPortalWeb = require('@bot-whatsapp/portal')
-const BaileysProvider = require('@bot-whatsapp/provider/baileys')
-const MySQLAdapter = require('@bot-whatsapp/database/mysql');
+const BaileysProvider = require('@bot-whatsapp/provider/baileys');
+const JsonFileAdapter = require('@bot-whatsapp/database/json');
 const { updateQuestion } = require('./google/sheets');
 
-async function leerPacientes() {
-    try {
-        const data = await fs.readFile('dbpy.json', 'utf8');
-        const pacientes = JSON.parse(data);
-        return pacientes;
-    } catch (err) {
-        console.error(err);
-        throw err;
-    }
-}
+const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+const siNo = ['si', 'no'];
+const validacion = ['hola', 'encuesta']
 
-/**
- * Declaramos las conexiones de MySQL
- */
-
-const MYSQL_DB_HOST = 'localhost'
-const MYSQL_DB_USER = 'root'
-const MYSQL_DB_PASSWORD = 'root'
-const MYSQL_DB_NAME = 'bot'
-const MYSQL_DB_PORT = '3306'
-
-const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
-const siNo = ['si', 'no']
-
-
-const flowTerciario = addKeyword(siNo)
-    .addAnswer(
-        [
-            '3️⃣ ¿Recomendaría este tipo de atencion a otra persona?\n',
-            '👉 Responder con SI o NO'
-        ],
-        { capture: true, delay: 2000 },
-        async (ctx, { fallBack, flowDynamic }) => {
-            const mensaje = ctx.body.toLowerCase()
-            if (!siNo.some(item => mensaje.includes(item))) {
-                return fallBack('No le entendi, 👉 Por favor responder con SI o NO')
-            } else {
-                fs.readFile('dbpy.json', 'utf8', (error, data) => {
-                    const pacientes = JSON.parse(data);
-                    if (error) {
-                        console.error('Error al leer el archivo:', error);
-                        return;
-                    }
-                    for (let i = pacientes.length - 1; i >= 0; i--) {
-                        ctx.from == pacientes[i].NUMERO
-                        if (ctx.from == pacientes[i].NUMERO) {
-                            const bodyLowerCase = ctx.body.toLowerCase();
-                            if (bodyLowerCase.includes('si')) {
-                                updateQuestion(10, pacientes[i].TURNCODIGO, 'SI')
-                            } else if (bodyLowerCase.includes('no')) {
-                                updateQuestion(10, pacientes[i].TURNCODIGO, 'NO')
-
-                            }
-                            /* updateQuestion(12, pacientes[i].TURNCODIGO, ctx.body)   */
-                            flowDynamic('Gracias por responder a la encuesta!')
-                        }
-                    }
-                })
-
-            }
-            return flowDynamic('Gracias por responder a la encuesta!')
+const welcome = addKeyword(EVENTS.WELCOME)
+    .addAction(async (ctx, { endFlow }) => {
+        if (!validacion.some(item => ctx.body.includes(item))) {
+            return endFlow('Por favor para iniciar la encuesta responda con alguna de las siguientes opciones:\n▫️ Hola\n▫️ Encuesta');
         }
-    )
+        else {
+            return
+        }
+    })
 
-const flowSecundario = addKeyword(numbers)
+const flowPrincipal = addKeyword(validacion)
+    .addAction(async (ctx, { endFlow }) => {
+
+        try {
+            const data = fs.readFileSync('dbpy.json', 'utf8');
+            const pacientes = JSON.parse(data);
+
+            // Buscar el paciente por el número
+            const pacienteIndex = pacientes.findIndex(paciente => paciente.NUMERO === ctx.from);
+            console.log(pacienteIndex);
+            // Verificar si se encontró al paciente
+            if (pacienteIndex !== -1) {
+                if (pacientes[pacienteIndex].RESPONDIO == "SI") {
+                    endFlow('Usted ya respondio la encuesta.\nMuchas Gracias!')
+                };
+
+            } else {
+                console.log("Paciente no encontrado");
+            }
+        } catch (error) {
+            console.error("Error al leer o escribir el archivo JSON:", error);
+        }
+    })
     .addAnswer(
         [
-            '2️⃣ ¿La consulta realizada, ayuda a resolver su problema?\n',
-            '👉 Responder con SI o NO'
-        ],
-        { capture: true, delay: 2000 },
-        (ctx, { fallBack, flowDynamic }) => {
-
-            const mensaje = ctx.body.toLowerCase()
-            if (!siNo.some(item => mensaje.includes(item))) {
-                return fallBack('No le entendi, 👉 Por favor responder con SI o NO')
-            }
-            else {
-                fs.readFile('dbpy.json', 'utf8', (error, data) => {
-                    const pacientes = JSON.parse(data);
-                    if (error) {
-                        console.error('Error al leer el archivo:', error);
-                        return;
-                    }
-                    for (let i = pacientes.length - 1; i >= 0; i--) {
-                        ctx.from == pacientes[i].NUMERO
-                        if (ctx.from == pacientes[i].NUMERO) {
-                            const bodyLowerCase = ctx.body.toLowerCase();
-                            if (bodyLowerCase.includes('si')) {
-                                updateQuestion(9, pacientes[i].TURNCODIGO, 'SI')
-                            } else if (bodyLowerCase.includes('no')) {
-                                updateQuestion(9, pacientes[i].TURNCODIGO, 'NO')
-
-                            }
-                            /* updateQuestion(12, pacientes[i].TURNCODIGO, ctx.body)   */
-                            flowDynamic('Siguiente pregunta!')
-                        }
-                    }
-                })
-
-            }
-        },
-        [flowTerciario]
-    )
-
-const flowPrincipal = addKeyword(EVENTS.WELCOME)
-    .addAnswer(
-        [
-            '1️⃣ ¿Cuál es su nivel de satisfaccion con la atención profesional recibida?\n',
+            '1️⃣ ¿Cuál es su nivel de satisfacción con la atención profesional recibida?\n',
             '👉 Responder del 1 al 10'
         ],
-        {capture: true},
-        (ctx, { fallBack, flowDynamic }) => {
+        { capture: true },
+        async (ctx, { fallBack, flowDynamic }) => {
             if (!numbers.some(item => ctx.body.includes(item))) {
-                return fallBack('No le entendi, 👉 Por favor responder del 1 al 10')
-            }
-            else {
-                fs.readFile('dbpy.json', 'utf8', (error, data) => {
+                return fallBack('No le entendí, 👉 Por favor responder del 1 al 10');
+            } else {
+                try {
+                    const data = fs.readFileSync('dbpy.json', 'utf8');
                     const pacientes = JSON.parse(data);
-                    if (error) {
-                        console.error('Error al leer el archivo:', error);
-                        return;
-                    }
                     for (let i = pacientes.length - 1; i >= 0; i--) {
-                        if (ctx.from == pacientes[i].NUMERO) {
-                            const number = ctx.body.replace(/[^0-9]/g, ''); 
-                            updateQuestion(8, pacientes[i].TURNCODIGO, number);
-                            /* updateQuestion(11, pacientes[i].TURNCODIGO, ctx.body); */
-                            flowDynamic('Siguiente pregunta!')
+                        if (ctx.from === pacientes[i].NUMERO) {
+                            const number = ctx.body.replace(/[^0-9]/g, '');
+                            await updateQuestion(8, pacientes[i].TURNCODIGO, number);
+                            // updateQuestion(11, pacientes[i].TURNCODIGO, ctx.body);
+                            flowDynamic('¡Siguiente pregunta!');
                         }
                     }
-                })
-
+                } catch (error) {
+                    console.error('Error al leer el archivo:', error);
+                }
             }
-        },
-        [flowSecundario]
+        }
     )
-const flowFlow = addKeyword
+    .addAnswer(
+        [
+            '2️⃣ ¿La consulta realizada ayuda a resolver su problema?\n',
+            '👉 Responder con SI o NO'
+        ],
+        { capture: true },
+        async (ctx, { fallBack, flowDynamic }) => {
+            const mensaje = ctx.body.toLowerCase();
+            if (!siNo.some(item => mensaje.includes(item))) {
+                return fallBack('No le entendí, 👉 Por favor responder con SI o NO');
+            } else {
+                try {
+                    const data = fs.readFileSync('dbpy.json', 'utf8');
+                    const pacientes = JSON.parse(data);
+                    for (let i = pacientes.length - 1; i >= 0; i--) {
+                        if (ctx.from === pacientes[i].NUMERO) {
+                            const bodyLowerCase = ctx.body.toLowerCase();
+                            if (bodyLowerCase.includes('si')) {
+                                await updateQuestion(9, pacientes[i].TURNCODIGO, 'SI');
+                            } else if (bodyLowerCase.includes('no')) {
+                                await updateQuestion(9, pacientes[i].TURNCODIGO, 'NO');
+                            }
+                            // updateQuestion(12, pacientes[i].TURNCODIGO, ctx.body);
+                            flowDynamic('¡Siguiente pregunta!');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al leer el archivo:', error);
+                }
+            }
+        }
+    )
+    .addAnswer(
+        [
+            '3️⃣ ¿Recomendaría este tipo de atención a otra persona?\n',
+            '👉 Responder con SI o NO'
+        ],
+        { capture: true },
+        async (ctx, { fallBack, flowDynamic }) => {
+            const mensaje = ctx.body.toLowerCase();
+            if (!siNo.some(item => mensaje.includes(item))) {
+                return fallBack('No le entendí, 👉 Por favor responder con SI o NO');
+            } else {
+                try {
+                    const data = fs.readFileSync('dbpy.json', 'utf8');
+                    const pacientes = JSON.parse(data);
+                    for (let i = pacientes.length - 1; i >= 0; i--) {
+                        if (ctx.from === pacientes[i].NUMERO) {
+                            const bodyLowerCase = ctx.body.toLowerCase();
+                            if (bodyLowerCase.includes('si')) {
+                                await updateQuestion(10, pacientes[i].TURNCODIGO, 'SI');
+                            } else if (bodyLowerCase.includes('no')) {
+                                await updateQuestion(10, pacientes[i].TURNCODIGO, 'NO');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error al leer el archivo:', error);
+                }
+            }
+        }
+    )
+    .addAnswer('Muchas gracias por su respuesta')
+    .addAction(async (ctx) => {
+        try {
+            const data = fs.readFileSync('dbpy.json', 'utf8');
+            const pacientes = JSON.parse(data);
 
+            // Buscar el paciente por el número
+            const pacienteIndex = pacientes.findIndex(paciente => paciente.NUMERO === ctx.from);
+            console.log(pacienteIndex);
+
+            // Verificar si se encontró al paciente
+            if (pacienteIndex !== -1) {
+                pacientes[pacienteIndex].RESPONDIO = "SI";
+                const pacientesJSON = JSON.stringify(pacientes);
+
+                fs.writeFileSync('dbpy.json', pacientesJSON, { encoding: 'utf8' });
+
+            } else {
+                console.log("Paciente no encontrado");
+            }
+        } catch (error) {
+            console.error("Error al leer o escribir el archivo JSON:", error);
+        }
+    })
 
 const main = async () => {
-    const adapterDB = new MySQLAdapter({
-        host: MYSQL_DB_HOST,
-        user: MYSQL_DB_USER,
-        database: MYSQL_DB_NAME,
-        password: MYSQL_DB_PASSWORD,
-        port: MYSQL_DB_PORT,
-    })
-    const adapterFlow = createFlow([flowPrincipal])
-    const adapterProvider = createProvider(BaileysProvider)
-    createBot({
+    const adapterDB = new JsonFileAdapter();
+    const adapterFlow = createFlow([flowPrincipal, welcome]);
+    const adapterProvider = createProvider(BaileysProvider);
+    await createBot({
         flow: adapterFlow,
         provider: adapterProvider,
         database: adapterDB,
-    })
+    },
+        {
+            state: {
+                status: false
+            }
+        }
+    );
     QRPortalWeb()
-}
+};
 
-main()
+main();
