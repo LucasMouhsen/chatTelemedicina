@@ -36,7 +36,7 @@ const flowPrincipal = addKeyword(validacion)
         try {
             const data = fs.readFileSync('dbpy.json', 'utf8');
             const pacientes = JSON.parse(data);
-            const encontrado = false;
+            let encontrado = false;
 
             // Recorrer el array al revés
             for (let i = pacientes.length - 1; i >= 0; i--) {
