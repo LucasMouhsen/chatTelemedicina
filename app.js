@@ -9,6 +9,17 @@ const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const siNo = ['si', 'no'];
 const validacion = ['hola', 'encuesta']
 
+
+
+const audio = addKeyword(EVENTS.VOICE_NOTE)
+    .addAnswer('No puedo recibir audios',{delay: 2150})
+const document = addKeyword(EVENTS.DOCUMENT)
+.addAnswer('No puedo recibir documentos',{delay: 2563})
+const media = addKeyword(EVENTS.MEDIA)
+    .addAnswer('No puedo recibir fotos y videos',{delay: 2478})
+const location = addKeyword(EVENTS.LOCATION)
+    .addAnswer('No puedo recibir ubicaciones',{delay: 1056})
+
 const welcome = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, { endFlow }) => {
         if (!validacion.some(item => ctx.body.includes(item))) {
@@ -25,19 +36,24 @@ const flowPrincipal = addKeyword(validacion)
         try {
             const data = fs.readFileSync('dbpy.json', 'utf8');
             const pacientes = JSON.parse(data);
+            const encontrado = false;
 
-            // Buscar el paciente por el número
-            const pacienteIndex = pacientes.findIndex(paciente => paciente.NUMERO === ctx.from);
-            console.log(pacienteIndex);
-            // Verificar si se encontró al paciente
-            if (pacienteIndex !== -1) {
-                if (pacientes[pacienteIndex].RESPONDIO == "SI") {
-                    endFlow('Usted ya respondio la encuesta.\nMuchas Gracias!')
-                };
-
-            } else {
-                console.log("Paciente no encontrado");
+            // Recorrer el array al revés
+            for (let i = pacientes.length - 1; i >= 0; i--) {
+                // Encontrar el último registro
+                if (pacientes[i].NUMERO === ctx.from) {
+                    // Verificar si se encontró al paciente
+                    if (pacientes[i].RESPONDIO == "SI") {
+                        endFlow('Usted ya respondio la encuesta.\nMuchas Gracias!');
+                    }
+                    encontrado = true;
+                    break;
+                }
             }
+            if (!encontrado) {
+                endFlow('Usted no puede realizar la encuesta');
+            }
+
         } catch (error) {
             console.error("Error al leer o escribir el archivo JSON:", error);
         }
@@ -137,20 +153,20 @@ const flowPrincipal = addKeyword(validacion)
             const data = fs.readFileSync('dbpy.json', 'utf8');
             const pacientes = JSON.parse(data);
 
-            // Buscar el paciente por el número
-            const pacienteIndex = pacientes.findIndex(paciente => paciente.NUMERO === ctx.from);
-            console.log(pacienteIndex);
+            // Recorrer el array al revés
+            for (let i = pacientes.length - 1; i >= 0; i--) {
+                // Encontrar el último registro
+                if (pacientes[i].NUMERO === ctx.from) {
 
-            // Verificar si se encontró al paciente
-            if (pacienteIndex !== -1) {
-                pacientes[pacienteIndex].RESPONDIO = "SI";
-                const pacientesJSON = JSON.stringify(pacientes);
+                    pacientes[i].RESPONDIO = "SI";
+                    const pacientesJSON = JSON.stringify(pacientes);
 
-                fs.writeFileSync('dbpy.json', pacientesJSON, { encoding: 'utf8' });
+                    fs.writeFileSync('dbpy.json', pacientesJSON, { encoding: 'utf8' });
 
-            } else {
-                console.log("Paciente no encontrado");
+                    break;
+                }
             }
+
         } catch (error) {
             console.error("Error al leer o escribir el archivo JSON:", error);
         }
@@ -158,7 +174,7 @@ const flowPrincipal = addKeyword(validacion)
 
 const main = async () => {
     const adapterDB = new JsonFileAdapter();
-    const adapterFlow = createFlow([flowPrincipal, welcome]);
+    const adapterFlow = createFlow([flowPrincipal, welcome, audio, location, media, document]);
     const adapterProvider = createProvider(BaileysProvider);
     await createBot({
         flow: adapterFlow,
