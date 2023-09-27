@@ -195,8 +195,7 @@ const main = async () => {
                 status: false
             }
         }
-    );
-    QRPortalWeb()
+    )
 };
 
 main();
