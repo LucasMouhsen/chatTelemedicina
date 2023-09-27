@@ -9,21 +9,52 @@ const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const siNo = ['si', 'no'];
 const validacion = ['hola', 'encuesta']
 
+function buscarSiHizoEncuesta(ctx, { endFlow }) {
+    try {
+        const data = fs.readFileSync('dbpy.json', 'utf8');
+        const pacientes = JSON.parse(data);
+        let encontrado = false;
 
+        // Recorrer el array al revés
+        for (let i = pacientes.length - 1; i >= 0; i--) {
+            // Encontrar el último registro
+            if (pacientes[i].NUMERO === ctx.from) {
+                // Verificar si se encontró al paciente
+                if (pacientes[i].RESPONDIO == "SI") {
+                    endFlow('¡Ya completo la encuesta! ¡Muchas gracias por su participación! 😊👍');
+                }
+                encontrado = true;
+                break;
+            }
+        }
+        if (!encontrado) {
+            endFlow('Lamentablemente, usted no puede realizar la encuesta. 🙁👍');
+        }
+
+    } catch (error) {
+        console.error("Error al leer o escribir el archivo JSON:", error);
+    }
+}
 
 const audio = addKeyword(EVENTS.VOICE_NOTE)
-    .addAnswer('No puedo recibir audios',{delay: 2150})
+    .addAnswer('No puedo recibir audios', { delay: 2150 })
+
 const document = addKeyword(EVENTS.DOCUMENT)
-.addAnswer('No puedo recibir documentos',{delay: 2563})
+    .addAnswer('No puedo recibir documentos', { delay: 2563 })
+
 const media = addKeyword(EVENTS.MEDIA)
-    .addAnswer('No puedo recibir fotos y videos',{delay: 2478})
+    .addAnswer('No puedo recibir fotos y videos', { delay: 2478 })
+
 const location = addKeyword(EVENTS.LOCATION)
-    .addAnswer('No puedo recibir ubicaciones',{delay: 1056})
+    .addAnswer('No puedo recibir ubicaciones', { delay: 1056 })
 
 const welcome = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, { endFlow }) => {
+        buscarSiHizoEncuesta(ctx, { endFlow })
+    })
+    .addAction(async (ctx, { endFlow }) => {
         if (!validacion.some(item => ctx.body.includes(item))) {
-            return endFlow('Por favor para iniciar la encuesta responda con alguna de las siguientes opciones:\n▫️ Hola\n▫️ Encuesta');
+            return endFlow('Por favor para iniciar la encuesta responda con alguna de las siguientes opciones:\n👋 Hola\n📋 Encuesta');
         }
         else {
             return
@@ -32,31 +63,7 @@ const welcome = addKeyword(EVENTS.WELCOME)
 
 const flowPrincipal = addKeyword(validacion)
     .addAction(async (ctx, { endFlow }) => {
-
-        try {
-            const data = fs.readFileSync('dbpy.json', 'utf8');
-            const pacientes = JSON.parse(data);
-            let encontrado = false;
-
-            // Recorrer el array al revés
-            for (let i = pacientes.length - 1; i >= 0; i--) {
-                // Encontrar el último registro
-                if (pacientes[i].NUMERO === ctx.from) {
-                    // Verificar si se encontró al paciente
-                    if (pacientes[i].RESPONDIO == "SI") {
-                        endFlow('Usted ya respondio la encuesta.\nMuchas Gracias!');
-                    }
-                    encontrado = true;
-                    break;
-                }
-            }
-            if (!encontrado) {
-                endFlow('Usted no puede realizar la encuesta');
-            }
-
-        } catch (error) {
-            console.error("Error al leer o escribir el archivo JSON:", error);
-        }
+        buscarSiHizoEncuesta(ctx, { endFlow })
     })
     .addAnswer(
         [
@@ -77,6 +84,7 @@ const flowPrincipal = addKeyword(validacion)
                             await updateQuestion(8, pacientes[i].TURNCODIGO, number);
                             // updateQuestion(11, pacientes[i].TURNCODIGO, ctx.body);
                             flowDynamic('¡Siguiente pregunta!');
+                            break
                         }
                     }
                 } catch (error) {
@@ -109,6 +117,7 @@ const flowPrincipal = addKeyword(validacion)
                             }
                             // updateQuestion(12, pacientes[i].TURNCODIGO, ctx.body);
                             flowDynamic('¡Siguiente pregunta!');
+                            break;
                         }
                     }
                 } catch (error) {
@@ -147,7 +156,7 @@ const flowPrincipal = addKeyword(validacion)
             }
         }
     )
-    .addAnswer('Muchas gracias por su respuesta')
+    .addAnswer('¡Muchas gracias por compartir tu respuesta! 😊🙏')
     .addAction(async (ctx) => {
         try {
             const data = fs.readFileSync('dbpy.json', 'utf8');
