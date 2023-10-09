@@ -1,4 +1,4 @@
-module.exports = capitalizarPrimeraLetraPalabras = (str) => {
+module.exports = capitalizeOneLetter = (str) => {
     const palabras = str.split(' ');
     const palabrasCapitalizadas = palabras.map(palabra => {
         const strLower = palabra.toLowerCase();

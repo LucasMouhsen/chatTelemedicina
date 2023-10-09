@@ -13,3 +13,6 @@ queue.class.log
 .wwebjs_cache
 db.json
 dbPy.json
+appTest.js
+dbTurnos.js
+dbSend.js
