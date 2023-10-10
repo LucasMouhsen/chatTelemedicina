@@ -4,7 +4,6 @@ async function esperar(min, max) {
     const sleep = Math.random() * (max - min) + min;
     return new Promise((resolve) => {
         setTimeout(() => {
-            console.log(sleep);
             resolve();
         }, sleep);
     });
