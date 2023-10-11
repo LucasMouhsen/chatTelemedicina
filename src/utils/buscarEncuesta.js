@@ -13,7 +13,7 @@ module.exports = async function buscarSiHizoEncuesta(ctx, { endFlow }) {
             if (pacientes[i].NUMERO === ctx.from) {
                 // Verificar si se encontró al paciente
                 if (pacientes[i].RESPONDIO == "SI") {
-                    endFlow(`${pacientes[i].DOCUMENTO}\n\n¡Ya completo la encuesta! ¡Muchas gracias por su participación! 😊👍`);
+                    endFlow(`📱 +${ctx.from}\n\n¡Ya completo la encuesta! ¡Muchas gracias por su participación! 😊👍`);
                     pacienteIndex = i
                 } else {
                     pacienteIndex = i
@@ -23,7 +23,7 @@ module.exports = async function buscarSiHizoEncuesta(ctx, { endFlow }) {
             }
         }
         if (!encontrado) {
-            endFlow('Lamentablemente, usted no puede realizar la encuesta. 🙁👍');
+            endFlow(`📱 +${ctx.from}\n\nLamentablemente, usted no puede realizar la encuesta. 🙁👍`);
         }
         return pacientes[pacienteIndex]
 
