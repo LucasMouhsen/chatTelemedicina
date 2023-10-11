@@ -1,6 +1,8 @@
+require("dotenv").config();
 const sql = require("mssql");
 const parceNum = require("./parceNum");
 const capitalizeOneLetter = require("./capitalizeOneLetter");
+const formatDate = require("./formatDate");
 
 
 const sqlConfig = {
@@ -8,7 +10,7 @@ const sqlConfig = {
   password: process.env.PASSWORD,
   server: process.env.SERVER,
   database: process.env.DATABASE,
-  port: process.env.PORT,
+  port: +process.env.PORT,
   options: {
     trustServerCertificate: true,
   },
@@ -23,16 +25,13 @@ async function searchDb() {
     const consulta = process.env.SQL_QUERY;
     const result = await sql.query(consulta);
 
-    // Crear mensajes de WhatsApp
+    // Crear paciente con la base de datos
     const pacientes = [];
     for (const row of result.recordset) {
       const nombre = capitalizeOneLetter(row.paci_Paciente.trim());
       const turnCodigo = row.turn_Codigo
       const documento = row.pers_NumeroDocumento
-      const fechaTurno = row.turn_FechaTurno
-        .toISOString()
-        .slice(0, 19)
-        .replace("T", " ");
+      const fechaTurno = formatDate(row.turn_FechaTurno)
       const numero = parceNum(row.tele_Numero)
       const procedimiento = capitalizeOneLetter(row.nome_Descripcion.trim())
       const ubicacion = capitalizeOneLetter(row.ubic_Descripcion.trim())
@@ -50,7 +49,7 @@ async function searchDb() {
     }
     // Cerrar la conexión con la base de datos
     await pool.close();
-    //Retornar
+    //Retornar paciente
     return pacientes;
   } catch (error) {
     console.error("Error:", error);
