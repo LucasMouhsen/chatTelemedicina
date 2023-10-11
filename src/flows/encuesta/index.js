@@ -84,7 +84,6 @@ module.exports = addKeyword(validacion)
     .addAction(async (ctx, { state, endFlow }) => {
         const myState = state.getMyState()
         const numero = ctx.from
-        console.log(myState);
         try {
             const data = fs.readFileSync('dbPy.json', 'utf8');
             const pacientes = JSON.parse(data);
