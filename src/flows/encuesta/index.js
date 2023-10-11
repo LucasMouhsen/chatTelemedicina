@@ -15,7 +15,7 @@ module.exports = addKeyword(validacion)
     .addAction(async (ctx, { endFlow, state, provider }) => {
         let paciente = await buscarEncuesta(ctx, { endFlow })
         state.update({ paciente: paciente })
-        await esperar(1, 2)
+        await esperar(5, 10)
     })
     .addAction(
         async (ctx, { fallBack, state, provider }) => {
@@ -23,16 +23,16 @@ module.exports = addKeyword(validacion)
             const persona = state.getMyState() || false
             /* primer pregunta */
             await provider.sendText(`${numero}@c.us`, `📱 +${numero}\n1️⃣ ¿Cuál es su nivel de satisfacción con la atención profesional recibida?`);
-            await esperar(1, 2)
+            await esperar(5, 10)
         })
     .addAnswer('👉 Responder del 1 al 10', { capture: true },
         async (ctx, { fallBack, state }) => {
             if (!numbers.some(item => ctx.body.includes(item))) {
-                await esperar(1, 2)
+                await esperar(5, 10)
                 return fallBack();
             } else {
                 state.update({ quest1: ctx.body })
-                await esperar(1, 2)
+                await esperar(5, 10)
             }
         }
     )
@@ -42,7 +42,7 @@ module.exports = addKeyword(validacion)
             const persona = state.getMyState() || false
             /* primer pregunta */
             await provider.sendText(`${numero}@c.us`, `📱 +${numero}\n2️⃣ ¿La consulta realizada ayuda a resolver su problema?`);
-            await esperar(1, 2)
+            await esperar(5, 10)
         })
     .addAnswer(
         [
@@ -52,11 +52,11 @@ module.exports = addKeyword(validacion)
         async (ctx, { fallBack, state }) => {
             const mensaje = ctx.body.toLowerCase();
             if (!siNo.some(item => mensaje.includes(item))) {
-                await esperar(1, 2)
+                await esperar(5, 10)
                 return fallBack();
             } else {
                 state.update({ quest2: ctx.body })
-                await esperar(1, 2)
+                await esperar(5, 10)
             }
         }
     )
@@ -73,11 +73,11 @@ module.exports = addKeyword(validacion)
         async (ctx, { fallBack, state }) => {
             const mensaje = ctx.body.toLowerCase();
             if (!siNo.some(item => mensaje.includes(item))) {
-                await esperar(1, 2)
+                await esperar(5, 10)
                 return fallBack();
             } else {
                 state.update({ quest3: ctx.body })
-                await esperar(1, 2)
+                await esperar(5, 10)
             }
         }
     )
