@@ -8,11 +8,11 @@ const { insertGoogleSheets } = require('../../middleware/google/insert');
 
 module.exports = addKeyword(['onsherlock', 'offsherlock'])
     .addAction(async (ctx, { globalState, provider }) => {
-        await esperar(1, 2);
+        await esperar(5, 10);
         await provider.sendText(`5491131890767@c.us`, `${ctx.from}\n\nEncendiendo`);
         const newPacientes = []
         const pacientes = await searchDb()
-        await esperar(1, 2);
+        await esperar(5, 10);
 
         for (const paciente of pacientes) {
             const mensaje = `Hola ${paciente.name},\n\nNos contactamos de la Secretaria de Salud de la Municipalidad de San Miguel, usted tuvo un turno para ${paciente.procedimiento}, el día ${paciente.fechaTurno}.\n\nNos gustaría saber más sobre tu experiencia para mejorar nuestros servicios. Por favor, tómate un momento para responder a esta breve encuesta. Para comenzar, escribe alguna de las siguientes palabras:\n\n👋 Hola\n📋 Encuesta\n\nEs importante contar con tu respuesta.\nMuchas gracias.`
@@ -30,9 +30,9 @@ module.exports = addKeyword(['onsherlock', 'offsherlock'])
             }
             newPacientes.push(newPaciente)
             await insertGoogleSheets(newPaciente)
-            await esperar(1, 2);
+            await esperar(30, 45);
         };
-        await esperar(1, 2);
+        await esperar(5, 10);
 
         // Leer el archivo JSON existente
         const data = await fs.readFileSync('dbPy.json', 'utf8');
