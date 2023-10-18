@@ -1,19 +1,19 @@
 const fs = require('fs');
+const { searchSheet } = require('../middleware/google/searchSheet');
 
 module.exports = async function buscarSiHizoEncuesta(ctx, { endFlow }) {
     try {
-        const data = fs.readFileSync('dbPy.json', 'utf8');
-        const pacientes = JSON.parse(data);
         let encontrado = false;
         let pacienteIndex
 
+        const values = await searchSheet()
         // Recorrer el array al revés
-        for (let i = pacientes.length - 1; i >= 0; i--) {
+        for (let i = values.length - 1; i >= 0; i--) {
             // Encontrar el último registro
-            if (pacientes[i].NUMERO === ctx.from) {
+            if (values[i].CONTACTO === ctx.from) {
                 // Verificar si se encontró al paciente
-                if (pacientes[i].RESPONDIO == "SI") {
-                    endFlow(`📱 +${ctx.from}\n\n¡Ya completo la encuesta! ¡Muchas gracias por su participación! 😊👍`);
+                if (values[i].RESPONDIO == "SI") {
+                    await endFlow(`📱 +${ctx.from}\n\n¡Ya completo la encuesta! ¡Muchas gracias por su participación! 😊👍`);
                     pacienteIndex = i
                 } else {
                     pacienteIndex = i
@@ -23,9 +23,9 @@ module.exports = async function buscarSiHizoEncuesta(ctx, { endFlow }) {
             }
         }
         if (!encontrado) {
-            endFlow(`📱 +${ctx.from}\n\nLamentablemente, usted no puede realizar la encuesta. 🙁👍`);
+            await endFlow(`📱 +${ctx.from}\n\nLamentablemente, usted no puede realizar la encuesta. 🙁👍`);
         }
-        return pacientes[pacienteIndex]
+        return values[pacienteIndex]
 
     } catch (error) {
         console.error("Error al leer o escribir el archivo JSON:", error);
