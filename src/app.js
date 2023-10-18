@@ -10,7 +10,6 @@ const flowOnOff = require('./flows/onOff')
 
 const flows = [
     flowPrincipal,
-    flowWelcome,
     flowOnOff
 ];
 
