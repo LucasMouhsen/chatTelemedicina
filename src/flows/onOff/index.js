@@ -16,7 +16,7 @@ module.exports = addKeyword(['onsherlock', 'offsherlock'])
 
         for (const paciente of pacientes) {
             const mensaje = `Hola ${paciente.name},\n\nNos contactamos de la Secretaria de Salud de la Municipalidad de San Miguel, usted tuvo un turno para ${paciente.procedimiento}, el día ${paciente.fechaTurno}.\n\nNos gustaría saber más sobre tu experiencia para mejorar nuestros servicios. Por favor, tómate un momento para responder a esta breve encuesta. Para comenzar, escribe alguna de las siguientes palabras:\n\n👋 Hola\n📋 Encuesta\n\nEs importante contar con tu respuesta.\nMuchas gracias.`
-            await provider.sendText(`${paciente.numero}@c.us`, mensaje);
+            await provider.sendText(`${'5491131890767'}@c.us`, mensaje);
             const newPaciente = {
                 NOMBRE: paciente.name,
                 TURNCODIGO: paciente.turnCodigo,
@@ -26,23 +26,23 @@ module.exports = addKeyword(['onsherlock', 'offsherlock'])
                 PROCEDIMIENTO: paciente.procedimiento,
                 FECHAENVIO: new Date(),
                 UBICACION: paciente.ubicacion,
-                RESPONDIO: ''
+                RESPONDIO: 'NO'
             }
-            newPacientes.push(newPaciente)
+            /* newPacientes.push(newPaciente) */
             await insertGoogleSheets(newPaciente)
             await esperar(30, 45);
         };
-        await esperar(5, 10);
+        await esperar(2, 3);
 
         // Leer el archivo JSON existente
-        const data = await fs.readFileSync('dbPy.json', 'utf8');
-        const pacientesJson = JSON.parse(data);
+        /* const data = await fs.readFileSync('dbPy.json', 'utf8');
+        const pacientesJson = JSON.parse(data); */
 
         // Agregar los nuevos pacientes al objeto pacientesJson
-        pacientesJson.push(...newPacientes);
+        /* pacientesJson.push(...newPacientes); */
 
         // Escribir el objeto actualizado en el archivo JSON
-        await writeFile('dbPy.json', JSON.stringify(pacientesJson, null, 2), 'utf8');
+        /* await writeFile('dbPy.json', JSON.stringify(pacientesJson, null, 2), 'utf8'); */
 
         await provider.sendText(`5491131890767@c.us`, `${ctx.from}\n\nTermine`);
     })
