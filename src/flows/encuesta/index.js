@@ -14,6 +14,7 @@ const validacion = ['hola', 'encuesta']
 module.exports = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, { endFlow, state, provider }) => {
         const myState = state.getMyState() || false
+        const mensaje = ctx.body.toLowerCase();
         if (!myState.trabajando) {
             await state.update({trabajando: true})
             const paciente = await buscarEncuesta(ctx, { endFlow })
@@ -21,7 +22,7 @@ module.exports = addKeyword(EVENTS.WELCOME)
                 await state.update({trabajando: false})
                 endFlow()
             }
-            else if (!validacion.some(item => ctx.body.includes(item))) {
+            else if (!validacion.some(item => mensaje.includes(item))) {
                 state.update({trabajando: false})
                 endFlow(`📱 +${ctx.from}\n\nPor favor para iniciar la encuesta responda con alguna de las siguientes opciones:\n👋 Hola\n📋 Encuesta`);
             }
@@ -44,7 +45,7 @@ module.exports = addKeyword(EVENTS.WELCOME)
     .addAnswer('👉 Responder del 1 al 10', { capture: true },
         async (ctx, { fallBack, state }) => {
             const ctxNumber = ctx.body.replace(/[^0-9]/g, '');
-            if (ctxNumber <= 10 && 0 <= ctxNumber) {
+            if (ctxNumber <= 10 && 1 <= ctxNumber & ctxNumber) {
                 state.update({ quest1: ctx.body })
                 await esperar(1,3)
             } else {
