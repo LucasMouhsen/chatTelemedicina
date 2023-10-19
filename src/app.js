@@ -1,4 +1,8 @@
 require("dotenv").config();
+const express = require('express')
+const app = express()
+const port = 3000
+
 const { createBot, createProvider, createFlow } = require('@bot-whatsapp/bot');
 const QRPortalWeb = require('@bot-whatsapp/portal')
 const BaileysProvider = require('@bot-whatsapp/provider/baileys');
@@ -30,4 +34,9 @@ const main = async () => {
     )
 };
 
-main();
+
+app.get('/', (req, res) => res.send('Hello World!'))
+app.listen(port, () => {
+    main();
+    console.log(`Example app listening on port ${port}!`)
+})
