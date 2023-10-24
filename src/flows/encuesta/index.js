@@ -2,7 +2,7 @@ const { addKeyword, EVENTS } = require('@bot-whatsapp/bot');
 const { updateQuestion } = require('../../middleware/google/sheets');
 const fs = require('fs');
 const { esperar } = require('../../utils/sleep');
-const buscarEncuesta = require('../../utils/buscarEncuesta');
+const buscarEncuesta = require('../../services/buscarEncuesta');
 const capitalizeOneLetter = require('../../utils/capitalizeOneLetter');
 const { searchSheet } = require('../../middleware/google/searchSheet');
 
