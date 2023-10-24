@@ -1,6 +1,6 @@
 const { addKeyword, EVENTS } = require('@bot-whatsapp/bot');
 const { esperar } = require('../../utils/sleep');
-const buscarEncuesta = require('../../utils/buscarEncuesta');
+const buscarEncuesta = require('../../services/buscarEncuesta');
 
 const validacion = ['hola', 'encuesta']
 
