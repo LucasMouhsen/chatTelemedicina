@@ -38,5 +38,5 @@ const main = async () => {
 app.get('/', (req, res) => res.send('Hello World!'))
 app.listen(port, () => {
     main();
-    console.log(`Example app listening on port ${port}!`)
+    console.log(`https://localhost:${port}`)
 })
