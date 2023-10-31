@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require('express')
 const app = express()
+const path = require('path')
 const port = process.env.PORT || 3000
 
 const { createBot, createProvider, createFlow } = require('@bot-whatsapp/bot');
@@ -35,8 +36,14 @@ const main = async () => {
 };
 
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/', (req, res) => {
+    const imagePath = path.join(__dirname, '..', 'bot.qr.png');
+
+  res.set('Content-Type', 'image/png');
+
+  res.sendFile(imagePath);
+})
 app.listen(port, () => {
     main();
-    console.log(`https://localhost:${port}`)
+    console.log(`http://localhost:${port}`)
 })
